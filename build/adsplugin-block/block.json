@@ -1,0 +1,43 @@
+{
+  "$schema": "https://schemas.wp.org/trunk/block.json",
+  "apiVersion": 3,
+  "name": "adsplugin/adsplugin-block",
+  "version": "0.1.0",
+  "title": "Ads Plugin Block",
+  "category": "ads-general",
+  "icon": "megaphone",
+  "description": "Main advertising block for displaying ads.",
+  "keywords": [
+    "ads",
+    "advertising",
+    "banner",
+    "promotion"
+  ],
+  "example": {},
+  "supports": {
+    "html": false,
+    "align": [
+      "wide",
+      "full"
+    ],
+    "spacing": {
+      "margin": true,
+      "padding": true
+    }
+  },
+  "attributes": {
+    "adContent": {
+      "type": "string",
+      "default": ""
+    },
+    "adType": {
+      "type": "string",
+      "default": "banner"
+    }
+  },
+  "textdomain": "adsplugin-block",
+  "editorScript": "file:./index.js",
+  "editorStyle": "file:./index.css",
+  "style": "file:./style-index.css",
+  "viewScript": "file:./view.js"
+}

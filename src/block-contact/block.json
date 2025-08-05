@@ -1,0 +1,35 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "adsplugin/contact-block",
+	"version": "0.1.0",
+	"title": "Contact Ad Block",
+	"category": "ads-general",
+	"icon": "email-alt",
+	"description": "Contact form block with advertising capabilities.",
+	"keywords": ["contact", "form", "ads", "lead generation"],
+	"example": {},
+	"supports": {
+		"html": false,
+		"align": ["wide", "full"],
+		"spacing": {
+			"margin": true,
+			"padding": true
+		}
+	},
+	"attributes": {
+		"showAdBanner": {
+			"type": "boolean",
+			"default": true
+		},
+		"contactTitle": {
+			"type": "string",
+			"default": "Contact Us"
+		}
+	},
+	"textdomain": "adsplugin-block",
+	"editorScript": "file:./index.js",
+	"editorStyle": "file:./index.css",
+	"style": "file:./style-index.css",
+	"viewScript": "file:./view.js"
+}

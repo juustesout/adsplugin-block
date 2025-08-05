@@ -16,6 +16,17 @@
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
 }
+
+//check for OPENAI_API_KEY
+if ( ! defined( 'OPENAI_API_KEY' ) || empty( OPENAI_API_KEY ) ) {
+	wp_die( __( 'The OPENAI_API_KEY constant is not defined or is empty. Please set it in your wp-config.php file.', 'adsplugin-block' ) );
+}
+// Define plugin version
+if ( ! defined( 'ADPLUGIN_BLOCK_VERSION' ) ) {
+	define( 'ADPLUGIN_BLOCK_VERSION', '0.1.0' );
+}	
+
+
 /**
  * Registers the blocks using traditional method for better compatibility
  */
@@ -67,7 +78,8 @@ function debug_adsplugin_blocks() {
         $our_blocks = array(
             'adsplugin/adsplugin-block',
             'adsplugin/contact-block', 
-            'adsplugin/hero-block'
+            'adsplugin/hero-block',
+			'adsplugin/block-ai-product-description'
         );
         
         foreach ( $our_blocks as $block_name ) {
@@ -85,3 +97,54 @@ function debug_adsplugin_blocks() {
     }
 }
 add_action( 'admin_notices', 'debug_adsplugin_blocks' );
+
+add_action('rest_api_init', function () {
+    register_rest_route('adsplugin/v1', '/generate-description', [
+        'methods'  => 'POST',
+        'callback' => 'adsplugin_generate_description',
+        'permission_callback' => '__return_true',
+    ]);
+});
+
+function adsplugin_generate_description($request) {
+    $params = $request->get_json_params();
+    $title = sanitize_text_field($params['title'] ?? '');
+
+    if (empty($title)) {
+        return new WP_Error('no_title', 'Geen producttitel opgegeven', ['status' => 400]);
+    }
+
+    $api_key = defined('OPENAI_API_KEY') ? OPENAI_API_KEY : '';
+    if (!$api_key) {
+        return new WP_Error('no_key', 'OpenAI API key ontbreekt', ['status' => 500]);
+    }
+
+    $prompt = "Schrijf een overtuigende korte productomschrijving voor het volgende product:\n\n"
+        . "Product: $title\n\n"
+        . "Toon: vriendelijk en inspirerend\n"
+        . "Lengte: maximaal 100 woorden\n\n";
+
+    $response = wp_remote_post('https://api.openai.com/v1/chat/completions', [
+        'headers' => [
+            'Authorization' => 'Bearer ' . $api_key,
+            'Content-Type'  => 'application/json',
+        ],
+        'body'    => json_encode([
+            'model' => 'gpt-4',
+            'messages' => [
+                ['role' => 'system', 'content' => 'Je bent een creatieve copywriter.'],
+                ['role' => 'user', 'content' => $prompt],
+            ],
+            'temperature' => 0.7,
+        ]),
+    ]);
+
+    if (is_wp_error($response)) {
+        return new WP_Error('api_error', 'Fout bij OpenAI-aanroep', ['status' => 500]);
+    }
+
+    $body = json_decode(wp_remote_retrieve_body($response), true);
+    $text = $body['choices'][0]['message']['content'] ?? '';
+
+    return ['description' => trim($text)];
+}
